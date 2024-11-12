@@ -1,0 +1,71 @@
+/* Основные стили для body */
+body {
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #000;
+    overflow: hidden;
+}
+
+/* Контейнер игры */
+.game-container {
+    position: relative;
+    width: 100%;
+    max-width: 400px;
+    height: 100%;
+    max-height: 600px;
+    overflow: hidden;
+    background-color: #111;
+    border: 2px solid #fff;
+}
+
+/* Стили для корабля игрока */
+.green-box {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    background-image: url('../img/green-box.png');
+    /* путь обновлён */
+    background-size: cover;
+    bottom: 20px;
+    /* Корабль фиксирован внизу экрана */
+    left: 180px;
+    /* Начальная позиция по горизонтали */
+}
+
+/* Стили для синих и красных объектов */
+.blue-box,
+.red-box {
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    background-size: cover;
+}
+
+.blue-box {
+    background-image: url('../img/blue-box.png');
+    /* путь обновлён */
+}
+
+.red-box {
+    background-image: url('../img/red-box.png');
+    /* путь обновлён */
+}
+
+/* Адаптивность для мобильных устройств */
+@media (max-width: 768px) {
+    .game-container {
+        width: 100vw;
+        height: 100vh;
+        max-width: none;
+        max-height: none;
+        border: none;
+    }
+
+    .green-box {
+        bottom: 10%;
+        left: 45%;
+    }
+}
