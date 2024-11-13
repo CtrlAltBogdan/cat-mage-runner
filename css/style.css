@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400..700&display=swap');
+
 /* Основные стили для body */
 body {
     margin: 0;
@@ -7,6 +9,8 @@ body {
     height: 100vh;
     background-color: #000;
     overflow: hidden;
+    font-family: "Pixelify Sans";
+    font-weight: 400;
 }
 
 /* Контейнер игры */
@@ -68,4 +72,51 @@ body {
         bottom: 10%;
         left: 45%;
     }
+}
+
+/* ... (previous styles) */
+
+.menu-container,
+.game-over-screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    /* Semi-transparent background */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    /* Text color */
+    z-index: 10;
+    /* Ensure it's on top */
+    transition: top 0.5s ease-in-out;
+    /* Add transition for animation */
+    font-family: "Pixelify Sans";
+}
+
+.menu-container button,
+.game-over-screen button {
+    padding: 10px 20px;
+    font-size: 1.2rem;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+button {
+    font-family: "Pixelify Sans";
+}
+
+.game-over-screen {
+    top: 100%;
+    transition: top 0.5s ease-in-out;
+}
+
+.game-container {
+    transition: opacity 0.5s ease-in-out;
 }
