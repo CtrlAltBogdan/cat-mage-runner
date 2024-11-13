@@ -1,30 +1,95 @@
 const gameContainer = document.getElementById("game-container");
 const player = document.getElementById("player");
+const menuContainer = document.getElementById("menu-container");
+const playButton = document.getElementById("play-button");
+const gameOverScreen = document.getElementById("game-over-screen");
+const finalScoreDisplay = document.getElementById("final-score");
+const highScoreDisplay = document.getElementById("high-score");
+const playAgainButton = document.getElementById("play-again-button");
+
+let gameInterval, difficultyIncreaseInterval;
 let score = 0;
-let gameInterval;
+let highScore = localStorage.getItem("highScore") || 0;
+highScoreDisplay.textContent = highScore;
+
 let obstacles = [];
 let itemsToCollect = [];
-const maxObjects = 30; // Максимальное количество объектов на экране одновременно
 
-// Изначальные параметры
-let obstacleSpeed = 2;
-let itemSpeed = 2;
-let spawnDelayRange = { min: 0, max: 2000 }; // Диапазон времени появления (0-2 секунды)
-let obstacleCreationChance = 0.2; // Начальная вероятность создания красных препятствий (20%)
-let itemCreationChance = 0.2; // Начальная вероятность создания синих объектов (20%)
-let difficultyLevel = 1; // Уровень сложности
-
-// Настройки корабля
 const playerSettings = {
   speed: 5,
   x: 180,
   movingLeft: false,
   movingRight: false,
-  isTouchActive: false, // Активен ли тач-управление
-  touchStartX: 0, // Начальная точка касания по оси X
+  isTouchActive: false,
+  touchStartX: 0,
 };
 
-// Обновление позиции корабля
+const gameSettings = {
+  obstacleSpeed: 2,
+  itemSpeed: 2,
+  spawnDelayRange: { min: 500, max: 2000 },
+  obstacleCreationChance: 0.2,
+  itemCreationChance: 0.2,
+  difficultyLevel: 1,
+  maxObjects: 30,
+};
+
+const deathAnimationFrames = [
+  "img/bomb-1.svg",
+  "img/bomb-2.svg",
+  "img/bomb-3.svg",
+];
+let currentFrame = 0;
+
+// --- Функции ---
+function startGame() {
+  score = 0;
+  obstacles = []; // Очищаем массив препятствий
+  itemsToCollect = []; // Очищаем массив предметов
+  resetPlayerPosition();
+  resetGameSettings();
+  currentFrame = 0; // Сбрасываем кадр анимации
+
+  gameContainer.style.display = "block"; // Показываем игровое поле
+  menuContainer.style.top = "-100%"; // Скрываем меню
+  gameOverScreen.style.top = "100%"; // Скрываем экран "Game Over"
+
+  gameInterval = setInterval(gameLoop, 20);
+  difficultyIncreaseInterval = setInterval(increaseDifficulty, 10000);
+
+  spawnObstacles();
+  spawnItems();
+}
+
+function gameLoop() {
+  moveObjects();
+  updatePlayerPosition();
+}
+
+function resetGame() {
+  clearInterval(gameInterval);
+  clearInterval(difficultyIncreaseInterval);
+
+  // Remove obstacles and items (but NOT the player)
+  obstacles.forEach((obstacle) => obstacle.remove());
+  itemsToCollect.forEach((item) => item.remove());
+  obstacles = []; // Clear the arrays
+  itemsToCollect = [];
+
+  // Remove explosion images (if any)
+  const explosionImages = gameContainer.querySelectorAll("img");
+  explosionImages.forEach((img) => gameContainer.removeChild(img));
+
+  gameOverScreen.style.display = "none";
+  player.style.display = "block"; // Ensure player is visible after reset
+
+  gameContainer.style.opacity = 0; // Fade-out transition
+  setTimeout(() => {
+    startGame();
+    gameContainer.style.opacity = 1;
+  }, 500);
+}
+
 function updatePlayerPosition() {
   if (playerSettings.movingLeft && playerSettings.x > 0) {
     playerSettings.x -= playerSettings.speed;
@@ -38,54 +103,19 @@ function updatePlayerPosition() {
   player.style.left = `${playerSettings.x}px`;
 }
 
-// Обработчики нажатия и отпускания клавиш для управления с клавиатуры
-document.addEventListener("keydown", (e) => {
-  if (e.key === "ArrowLeft") playerSettings.movingLeft = true;
-  if (e.key === "ArrowRight") playerSettings.movingRight = true;
-});
-
-document.addEventListener("keyup", (e) => {
-  if (e.key === "ArrowLeft") playerSettings.movingLeft = false;
-  if (e.key === "ArrowRight") playerSettings.movingRight = false;
-});
-
-// Обработка touch-событий для управления пальцем
-player.addEventListener("touchstart", (e) => {
-  playerSettings.isTouchActive = true;
-  playerSettings.touchStartX = e.touches[0].clientX;
-});
-
-player.addEventListener("touchmove", (e) => {
-  if (playerSettings.isTouchActive) {
-    const touchX = e.touches[0].clientX;
-    const deltaX = touchX - playerSettings.touchStartX;
-
-    playerSettings.x += deltaX; // Перемещение в соответствии с изменением касания
-    playerSettings.x = Math.max(
-      0,
-      Math.min(playerSettings.x, gameContainer.offsetWidth - player.offsetWidth)
-    );
-    player.style.left = `${playerSettings.x}px`;
-    playerSettings.touchStartX = touchX; // Обновляем позицию касания для плавного перемещения
-  }
-});
-
-player.addEventListener("touchend", () => {
-  playerSettings.isTouchActive = false;
-});
-
-// Проверка перекрытия объектов с учетом расстояния между ними
 function isPositionValid(newX, newY, buffer = 60) {
-  return ![...obstacles, ...itemsToCollect].some((object) => {
+  for (const object of [...obstacles, ...itemsToCollect]) {
     const objX = parseInt(object.style.left);
     const objY = parseInt(object.style.top);
-    return Math.abs(newX - objX) < buffer && Math.abs(newY - objY) < buffer;
-  });
+    if (Math.abs(newX - objX) < buffer && Math.abs(newY - objY) < buffer) {
+      return false; // Обнаружено столкновение
+    }
+  }
+  return true; // Нет столкновения
 }
 
-// Создание препятствия (красный объект)
 function createObstacle() {
-  if (obstacles.length >= maxObjects / 2) return;
+  if (obstacles.length >= gameSettings.maxObjects / 2) return;
 
   let obstacleX,
     obstacleY = -30;
@@ -102,10 +132,8 @@ function createObstacle() {
   obstacles.push(obstacle);
 }
 
-// Создание объекта для сбора (синий объект)
 function createItem() {
-  if (itemsToCollect.length >= maxObjects / 2) return;
-
+  if (itemsToCollect.length >= gameSettings.maxObjects / 2) return;
   let itemX,
     itemY = -30;
 
@@ -121,18 +149,15 @@ function createItem() {
   itemsToCollect.push(item);
 }
 
-// Движение препятствий и предметов вниз по экрану с разными скоростями
 function moveObjects() {
-  const containerHeight = gameContainer.offsetHeight; // Определяем высоту контейнера игры
-
+  const containerHeight = gameContainer.offsetHeight;
   obstacles.forEach((obstacle, index) => {
     let obstacleTop = parseFloat(obstacle.style.top);
     if (obstacleTop > containerHeight) {
-      // Удаляем, когда объект выходит за высоту контейнера
       obstacle.remove();
       obstacles.splice(index, 1);
     } else {
-      obstacleTop += obstacleSpeed;
+      obstacleTop += gameSettings.obstacleSpeed;
       obstacle.style.top = `${obstacleTop}px`;
       checkCollision(obstacle, "obstacle");
     }
@@ -140,19 +165,18 @@ function moveObjects() {
 
   itemsToCollect.forEach((item, index) => {
     let itemTop = parseFloat(item.style.top);
+
     if (itemTop > containerHeight) {
-      // Удаляем, когда объект выходит за высоту контейнера
       item.remove();
       itemsToCollect.splice(index, 1);
     } else {
-      itemTop += itemSpeed;
+      itemTop += gameSettings.itemSpeed;
       item.style.top = `${itemTop}px`;
       checkCollision(item, "item");
     }
   });
 }
 
-// Проверка на столкновение
 function checkCollision(object, type) {
   const playerRect = player.getBoundingClientRect();
   const objectRect = object.getBoundingClientRect();
@@ -169,62 +193,174 @@ function checkCollision(object, type) {
       score++;
       object.remove();
       itemsToCollect = itemsToCollect.filter((item) => item !== object);
-      console.log(`Счёт: ${score}`);
     }
   }
 }
 
-// Конец игры
 function endGame() {
   clearInterval(gameInterval);
-  alert(`Игра окончена! Ваш счёт: ${score}`);
+  clearInterval(difficultyIncreaseInterval);
+  playDeathAnimation();
 }
 
-// Функция для задания случайной задержки
+function showGameOverScreen() {
+  gameOverScreen.style.display = "flex"; // Показываем экран
+  setTimeout(() => {
+    // С небольшой задержкой
+    gameOverScreen.style.top = "0%"; // Анимируем появление сверху вниз
+    finalScoreDisplay.textContent = score;
+    if (score > highScore) {
+      highScore = score;
+      localStorage.setItem("highScore", highScore);
+      highScoreDisplay.textContent = highScore;
+    }
+  }, 100); // Небольшая задержка для плавного перехода
+}
+
+function playDeathAnimation() {
+  const playerX = player.offsetLeft;
+  const playerY = player.offsetTop;
+  player.style.display = "none"; // Скрываем игрока
+
+  let animationInterval;
+
+  function animateExplosion() {
+    // функция для анимации взрыва
+    let animationImage = document.createElement("img");
+    animationImage.src = deathAnimationFrames[currentFrame];
+    animationImage.style.position = "absolute";
+    animationImage.style.width = "60px";
+    animationImage.style.height = "60px";
+    animationImage.style.left = `${playerX}px`;
+    animationImage.style.top = `${playerY}px`;
+    gameContainer.appendChild(animationImage);
+
+    if (currentFrame > 0) {
+      const previousFrameImage = gameContainer.querySelector(
+        `img[src="${deathAnimationFrames[currentFrame - 1]}"]`
+      );
+      if (previousFrameImage) {
+        gameContainer.removeChild(previousFrameImage);
+      }
+    }
+
+    currentFrame++;
+    if (currentFrame >= deathAnimationFrames.length) {
+      clearInterval(animationInterval);
+      currentFrame = 0;
+
+      const explosionImages = gameContainer.querySelectorAll("img");
+      explosionImages.forEach((img) => gameContainer.removeChild(img));
+
+      setTimeout(showGameOverScreen, 500);
+    }
+  }
+
+  animateExplosion(); // Вызываем функцию для отображения первого кадра
+  animationInterval = setInterval(animateExplosion, 500); // Запускаем интервал для последующих кадров
+}
+
+function resetPlayerPosition() {
+  playerSettings.x = 180;
+  player.style.left = "180px";
+  player.style.display = "block";
+}
+
+function resetGameSettings() {
+  gameSettings.obstacleSpeed = 2;
+  gameSettings.itemSpeed = 2;
+  gameSettings.spawnDelayRange = { min: 500, max: 2000 };
+  gameSettings.obstacleCreationChance = 0.2;
+  gameSettings.itemCreationChance = 0.2;
+  gameSettings.difficultyLevel = 1;
+}
+
+function increaseDifficulty() {
+  gameSettings.difficultyLevel++;
+  gameSettings.obstacleSpeed += 0.5;
+  gameSettings.itemSpeed += 0.5;
+
+  gameSettings.obstacleCreationChance = Math.min(
+    0.5,
+    gameSettings.obstacleCreationChance + 0.05
+  );
+  gameSettings.itemCreationChance = Math.min(
+    0.5,
+    gameSettings.itemCreationChance + 0.05
+  );
+
+  gameSettings.spawnDelayRange.max = Math.max(
+    500,
+    gameSettings.spawnDelayRange.max - 100
+  );
+}
+
 function getRandomDelay(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-// Повышение сложности игры
-function increaseDifficulty() {
-  difficultyLevel++;
-  obstacleSpeed += 0.5;
-  itemSpeed += 0.5;
-
-  obstacleCreationChance = Math.min(0.5, obstacleCreationChance + 0.05); // Максимум 50%
-  itemCreationChance = Math.min(0.5, itemCreationChance + 0.05); // Максимум 50%
-
-  spawnDelayRange.max = Math.max(500, spawnDelayRange.max - 100); // Уменьшаем задержку создания
-  console.log(`Уровень сложности: ${difficultyLevel}`);
+function spawnObstacles() {
+  if (Math.random() < gameSettings.obstacleCreationChance) {
+    createObstacle();
+  }
+  setTimeout(
+    spawnObstacles,
+    getRandomDelay(
+      gameSettings.spawnDelayRange.min,
+      gameSettings.spawnDelayRange.max
+    )
+  );
 }
 
-// Запуск игры
-function startGame() {
-  function spawnObstacles() {
-    if (Math.random() < obstacleCreationChance) createObstacle();
-    setTimeout(
-      spawnObstacles,
-      getRandomDelay(spawnDelayRange.min, spawnDelayRange.max)
-    );
+function spawnItems() {
+  if (Math.random() < gameSettings.itemCreationChance) {
+    createItem();
   }
-
-  function spawnItems() {
-    if (Math.random() < itemCreationChance) createItem();
-    setTimeout(
-      spawnItems,
-      getRandomDelay(spawnDelayRange.min, spawnDelayRange.max)
-    );
-  }
-
-  spawnObstacles();
-  spawnItems();
-
-  gameInterval = setInterval(() => {
-    moveObjects();
-    updatePlayerPosition();
-  }, 20);
-
-  setInterval(increaseDifficulty, 10000); // Каждые 10 секунд увеличивается сложность
+  setTimeout(
+    spawnItems,
+    getRandomDelay(
+      gameSettings.spawnDelayRange.min,
+      gameSettings.spawnDelayRange.max
+    )
+  );
 }
 
-startGame();
+// --- Обработчики событий ---
+playButton.addEventListener("click", startGame);
+playAgainButton.addEventListener("click", () => {
+  gameOverScreen.style.display = "none";
+  resetGame();
+});
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === "ArrowLeft") playerSettings.movingLeft = true;
+  if (e.key === "ArrowRight") playerSettings.movingRight = true;
+});
+
+document.addEventListener("keyup", (e) => {
+  if (e.key === "ArrowLeft") playerSettings.movingLeft = false;
+  if (e.key === "ArrowRight") playerSettings.movingRight = false;
+});
+
+player.addEventListener("touchstart", (e) => {
+  playerSettings.isTouchActive = true;
+  playerSettings.touchStartX = e.touches[0].clientX;
+});
+
+player.addEventListener("touchmove", (e) => {
+  if (playerSettings.isTouchActive) {
+    const touchX = e.touches[0].clientX;
+    const deltaX = touchX - playerSettings.touchStartX;
+    playerSettings.x += deltaX;
+    playerSettings.x = Math.max(
+      0,
+      Math.min(playerSettings.x, gameContainer.offsetWidth - player.offsetWidth)
+    );
+    player.style.left = `${playerSettings.x}px`;
+    playerSettings.touchStartX = touchX;
+  }
+});
+
+player.addEventListener("touchend", () => {
+  playerSettings.isTouchActive = false;
+});
