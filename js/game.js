@@ -35,9 +35,9 @@ const gameSettings = {
 };
 
 const deathAnimationFrames = [
-  "./img/bomb-1.svg",
-  "./img/bomb-2.svg",
-  "./img/bomb-3.svg",
+  "img/bomb-1.svg",
+  "img/bomb-2.svg",
+  "img/bomb-3.svg",
 ];
 let currentFrame = 0;
 
