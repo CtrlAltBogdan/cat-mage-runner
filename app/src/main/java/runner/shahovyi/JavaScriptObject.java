@@ -13,7 +13,6 @@ public class JavaScriptObject {
 
     @JavascriptInterface
     public void showToast() {
-        Toast toast = Toast.makeText(context, "(・∀・)b", Toast.LENGTH_LONG);
-        toast.show();
+        Toast.makeText(context, "(・∀・)b", Toast.LENGTH_LONG).show();
     }
 }
