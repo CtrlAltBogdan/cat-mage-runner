@@ -7,22 +7,26 @@
     <link rel="stylesheet" href="./css/style.css">
 </head>
 <body>
-    <div class="menu-container" id="menu-container">
-        <button id="play-button">Play</button>
-    </div>
+<!-- Начальное меню с кнопкой "Play" -->
+<div class="menu-container" id="menu-container">
+    <button id="play-button">Play</button>
+</div>
 
-    <div class="game-container" id="game-container" style="display: none;">
-        <div id="player" class="green-box"></div>
-    </div>
+<!-- Игровое поле, скрыто по умолчанию -->
+<div class="game-container" id="game-container" style="display: none;">
+    <!-- Игрок (зеленый квадрат), который будет управляться через скрипт -->
+    <div id="player" class="green-box"></div>
+</div>
 
-    <div class="game-over-screen" id="game-over-screen" style="display: none;">
-        <h2>Game Over</h2>
-        <p>Score: <span id="final-score">0</span></p>
-        <p>High Score: <span id="high-score">0</span></p>
-        <button id="play-again-button">Play Again</button>
-    </div>
+<!-- Экран окончания игры, также скрыт по умолчанию -->
+<div class="game-over-screen" id="game-over-screen" style="display: none;">
+    <h2>Game Over</h2>
+    <p>Score: <span id="final-score">0</span></p>
+    <p>High Score: <span id="high-score">0</span></p>
+    <button id="play-again-button">Play Again</button>
+</div>
 
-    <script src="./js/game.js"></script>
+<!-- Подключаем JavaScript для логики игры -->
+<script src="./js/game.js"></script>
 </body>
 </html>
-
