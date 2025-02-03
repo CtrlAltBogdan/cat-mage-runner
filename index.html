@@ -1,32 +1,32 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Space Dodger</title>
-    <link rel="stylesheet" href="./css/style.css">
-</head>
-<body>
-<!-- Начальное меню с кнопкой "Play" -->
-<div class="menu-container" id="menu-container">
-    <button id="play-button">Play</button>
-</div>
+    <link rel="stylesheet" href="./css/style.css" />
+  </head>
+  <body>
+    <!-- Начальное меню с кнопкой "Play" -->
+    <div class="menu-container" id="menu-container">
+      <button id="play-button" class="play-b"></button>
+    </div>
 
-<!-- Игровое поле, скрыто по умолчанию -->
-<div class="game-container" id="game-container" style="display: none;">
-    <!-- Игрок (зеленый квадрат), который будет управляться через скрипт -->
-    <div id="player" class="green-box"></div>
-</div>
+    <!-- Игровое поле, скрыто по умолчанию -->
+    <div class="game-container" id="game-container" style="display: none">
+      <!-- Игрок (зеленый квадрат), который будет управляться через скрипт -->
+      <div id="player" class="space"></div>
+    </div>
 
-<!-- Экран окончания игры, также скрыт по умолчанию -->
-<div class="game-over-screen" id="game-over-screen" style="display: none;">
-    <h2>Game Over</h2>
-    <p>Score: <span id="final-score">0</span></p>
-    <p>High Score: <span id="high-score">0</span></p>
-    <button id="play-again-button">Play Again</button>
-</div>
+    <!-- Экран окончания игры, также скрыт по умолчанию -->
+    <div class="game-over-screen" id="game-over-screen" style="display: none">
+      <div class="gameover"></div>
+      <p>Score: <span id="final-score">0</span></p>
+      <p>High Score: <span id="high-score">0</span></p>
+      <button id="play-again-button" class="playagin"></button>
+    </div>
 
-<!-- Подключаем JavaScript для логики игры -->
-<script src="./js/game.js"></script>
-</body>
+    <!-- Подключаем JavaScript для логики игры -->
+    <script src="./js/game.js"></script>
+  </body>
 </html>

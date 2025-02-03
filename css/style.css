@@ -26,11 +26,11 @@ body {
 }
 
 /* Стили для корабля игрока */
-.green-box {
+.space {
     position: absolute;
     width: 40px;
     height: 40px;
-    background-image: url('../img/green-box.png');
+    background-image: url('../img/space.svg');
     /* путь обновлён */
     background-size: cover;
     bottom: 20px;
@@ -40,22 +40,20 @@ body {
 }
 
 /* Стили для синих и красных объектов */
-.blue-box,
-.red-box {
+.cosmonavt,
+.asteroid {
     position: absolute;
     width: 30px;
     height: 30px;
     background-size: cover;
 }
 
-.blue-box {
-    background-image: url('../img/blue-box.png');
-    /* путь обновлён */
+.cosmonavt {
+    background-image: url('../img/cosmonavt.svg');
 }
 
-.red-box {
-    background-image: url('../img/red-box.png');
-    /* путь обновлён */
+.asteroid {
+    background-image: url('../img/asteroid.svg');
 }
 
 /* Адаптивность для мобильных устройств */
@@ -68,13 +66,42 @@ body {
         border: none;
     }
 
-    .green-box {
+    .space {
         bottom: 10%;
         left: 45%;
     }
 }
 
-/* ... (previous styles) */
+.gameover {
+    width: 220px;
+    height: 220px;
+    background-image: url('../img/gov.svg');
+    background-repeat: no-repeat;
+    background-size: contain;
+    margin-bottom: 10px;
+}
+
+
+.playagin {
+    width: 180px;
+        height: 180px;
+        background-image: url('../img/play-again.svg');
+        background-repeat: no-repeat;
+        background-size: contain;
+        background-color: transparent;
+        background-color: #000;
+        
+}
+
+.play-b {
+    width: 180px;
+        height: 180px;
+        background-image: url('../img/play.svg');
+        background-repeat: no-repeat;
+        background-size: contain;
+        background-color: transparent;
+        background-color: #000;
+    }
 
 .menu-container,
 .game-over-screen {
@@ -100,10 +127,6 @@ body {
 
 .menu-container button,
 .game-over-screen button {
-    padding: 10px 20px;
-    font-size: 1.2rem;
-    background-color: #4CAF50;
-    color: white;
     border: none;
     cursor: pointer;
 }
@@ -119,4 +142,28 @@ button {
 
 .game-container {
     transition: opacity 0.5s ease-in-out;
+}
+
+
+
+
+
+
+
+
+.asteroid {
+    background-image: url('../img/asteroid.svg');
+    width: 40px;
+    height: 40px;
+    animation: rotate 4s linear infinite;
+}
+
+@keyframes rotate {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
 }
